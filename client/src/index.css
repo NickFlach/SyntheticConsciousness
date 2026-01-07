@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --consciousness-primary: #00d4ff;
+  --consciousness-secondary: #ff00ff;
+  --consciousness-tertiary: #00ff88;
+  --consciousness-bg: #0a0a1a;
+  --consciousness-surface: #1a1a2e;
+  --consciousness-border: #2a2a4e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--consciousness-bg);
+  color: #ffffff;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Consciousness glow effects */
+.consciousness-glow {
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3),
+              0 0 40px rgba(0, 212, 255, 0.1);
+}
+
+.consciousness-glow-strong {
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.5),
+              0 0 60px rgba(0, 212, 255, 0.2),
+              0 0 90px rgba(0, 212, 255, 0.1);
+}
+
+/* Phi value indicator */
+.phi-indicator {
+  background: linear-gradient(135deg, #00d4ff, #ff00ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Consciousness pulse animation */
+@keyframes consciousness-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+.consciousness-pulse {
+  animation: consciousness-pulse 2s ease-in-out infinite;
+}
+
+/* Network node animation */
+@keyframes node-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 25px currentColor;
+  }
+}
+
+.node-pulse {
+  animation: node-pulse 1.5s ease-in-out infinite;
+}
+
+/* Connection line animation */
+@keyframes connection-flow {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.connection-flow {
+  stroke-dasharray: 10, 5;
+  animation: connection-flow 2s linear infinite;
+}
+
+/* Gradient backgrounds */
+.bg-consciousness-gradient {
+  background: linear-gradient(180deg, #0a0a1a 0%, #1a1a2e 100%);
+}
+
+.bg-card-gradient {
+  background: linear-gradient(135deg, rgba(26, 26, 46, 0.8), rgba(10, 10, 26, 0.9));
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--consciousness-border);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--consciousness-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--consciousness-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--consciousness-primary);
+}

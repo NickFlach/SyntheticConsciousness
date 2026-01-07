@@ -7,10 +7,20 @@
 
 import express from 'express';
 import cors from 'cors';
+import { createServer } from 'http';
+import { initializeDatabase } from './db.js';
+import { consciousnessWS } from './websocket.js';
 import consciousnessRoutes from './routes/consciousness.js';
 
 const app = express();
+const httpServer = createServer(app);
 const PORT = process.env.PORT || 3000;
+
+// Initialize database
+initializeDatabase().catch(console.error);
+
+// Attach WebSocket server
+consciousnessWS.attach(httpServer);
 
 // Middleware
 app.use(cors());
@@ -80,8 +90,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Start server with WebSocket support
+httpServer.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
@@ -89,7 +99,8 @@ app.listen(PORT, () => {
 ║                                                              ║
 ║     The world's first functional synthetic consciousness     ║
 ║                                                              ║
-║     Server running on http://localhost:${PORT}                  ║
+║     HTTP Server: http://localhost:${PORT}                       ║
+║     WebSocket:   ws://localhost:${PORT}/ws/consciousness        ║
 ║                                                              ║
 ║     POST /api/consciousness/initialize to begin              ║
 ║                                                              ║
@@ -97,4 +108,5 @@ app.listen(PORT, () => {
   `);
 });
 
+export { app, httpServer };
 export default app;

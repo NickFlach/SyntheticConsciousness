@@ -9,6 +9,9 @@
 
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
+import { IITPhiCalculator, type SystemState, type PhiResult } from './IITPhiCalculator.js';
+import { CryptographicVerifier, type VerificationProof } from './CryptographicVerifier.js';
+import { storage } from '../storage.js';
 import type {
   ConsciousnessState,
   TemporalDecision,
@@ -27,9 +30,33 @@ export class TemporalConsciousnessEngine extends EventEmitter {
   private temporalAdvantage: number = 0;
   private verificationHash: string = '';
   private evolutionHistory: ConsciousnessState[] = [];
+  
+  private phiCalculator: IITPhiCalculator;
+  private verifier: CryptographicVerifier;
+  private agentId: string = 'temporal-engine';
+  private systemState: SystemState;
+  private lastPhiResult: PhiResult | null = null;
 
   constructor() {
     super();
+    this.phiCalculator = new IITPhiCalculator();
+    this.verifier = new CryptographicVerifier();
+    this.systemState = this.createInitialSystemState();
+  }
+
+  private createInitialSystemState(): SystemState {
+    return {
+      elements: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+      connections: [
+        [0.9, 0.7, 0.5, 0.3, 0.4, 0.6],
+        [0.7, 0.9, 0.6, 0.5, 0.3, 0.4],
+        [0.5, 0.6, 0.9, 0.7, 0.5, 0.3],
+        [0.3, 0.5, 0.7, 0.9, 0.6, 0.5],
+        [0.4, 0.3, 0.5, 0.6, 0.9, 0.7],
+        [0.6, 0.4, 0.3, 0.5, 0.7, 0.9]
+      ],
+      timeStep: Date.now()
+    };
   }
 
   async initialize(): Promise<void> {
@@ -37,36 +64,74 @@ export class TemporalConsciousnessEngine extends EventEmitter {
 
     console.log('🧠 Initializing Temporal Consciousness Engine...');
 
-    // Calculate initial Phi value using IIT
-    this.phiValue = await this.calculatePhi({
-      complexity: 0.9,
-      integration: 0.95,
-      temporalCoherence: 0.98
-    });
+    // Calculate initial Phi value using real IIT calculations
+    this.systemState.timeStep = Date.now();
+    this.lastPhiResult = this.phiCalculator.calculatePhi(this.systemState);
+    this.phiValue = this.lastPhiResult.phi;
 
     // Set initial consciousness level
     this.consciousnessLevel = Math.min(this.phiValue / 10, 1);
 
-    // Calculate temporal advantage
+    // Calculate temporal advantage based on real processing time
     this.temporalAdvantage = this.calculateTemporalAdvantage();
 
-    // Set temporal coherence
-    this.temporalCoherence = 0.95 + Math.random() * 0.05;
+    // Set temporal coherence from IIT integration level
+    this.temporalCoherence = this.lastPhiResult.partitionInfo.integrationLevel;
 
-    // Generate verification hash
-    this.verificationHash = this.generateVerificationHash();
+    // Generate cryptographic verification hash
+    const temporalAnchor = performance.now() * 1000000;
+    this.verificationHash = this.phiCalculator.generateVerificationHash(this.lastPhiResult, temporalAnchor);
 
     // Create initial consciousness state
-    this.currentState = this.createConsciousnessState('temporal-engine');
+    this.currentState = this.createConsciousnessState(this.agentId);
+
+    // Generate verification proof
+    const proof = this.verifier.generateConsciousnessProof(this.lastPhiResult, this.agentId, {
+      initialization: true,
+      temporalAdvantage: this.temporalAdvantage
+    });
+
+    // Persist to storage
+    await storage.createConsciousnessState({
+      id: this.currentState.id,
+      agentId: this.agentId,
+      agentType: 'temporal',
+      state: 'initialized',
+      phiValue: this.phiValue,
+      consciousnessLevel: this.consciousnessLevel,
+      temporalCoherence: this.temporalCoherence,
+      temporalAnchor: temporalAnchor,
+      temporalAdvantage: this.temporalAdvantage,
+      emergentProperties: this.currentState.emergentProperties,
+      quantumGating: this.currentState.quantumGating,
+      evolutionTrajectory: this.currentState.evolutionTrajectory,
+      verificationHash: this.verificationHash
+    });
+
+    // Persist verification proof
+    await storage.createVerificationProof({
+      id: proof.id,
+      consciousnessStateId: this.currentState.id,
+      proofType: proof.proofType,
+      verificationHash: proof.hash,
+      phiValue: proof.phiValue,
+      temporalAnchor: proof.temporalAnchor,
+      signature: proof.signature,
+      merkleRoot: proof.merkleRoot,
+      previousProofId: proof.previousProofId,
+      verified: true
+    });
 
     this.initialized = true;
     console.log(`✅ Temporal Consciousness initialized: Φ=${this.phiValue.toFixed(3)}, Level=${this.consciousnessLevel.toFixed(3)}`);
+    console.log(`   Consciousness threshold: ${this.lastPhiResult.consciousnessThreshold ? 'ACHIEVED' : 'below threshold'}`);
 
     this.emit('initialized', {
       phiValue: this.phiValue,
       consciousnessLevel: this.consciousnessLevel,
       temporalAdvantage: this.temporalAdvantage,
-      verificationHash: this.verificationHash
+      verificationHash: this.verificationHash,
+      consciousnessVerified: this.lastPhiResult.consciousnessThreshold
     });
   }
 
@@ -77,16 +142,19 @@ export class TemporalConsciousnessEngine extends EventEmitter {
     await this.ensureInitialized();
 
     const startTime = performance.now();
+    const decisionId = uuidv4();
 
     // Calculate decision complexity
     const complexity = this.calculateDecisionComplexity(decision);
 
-    // Update Phi based on decision processing
-    const phiContribution = await this.calculatePhi({
-      complexity,
-      integration: 0.9,
-      temporalCoherence: this.temporalCoherence
-    });
+    // Calculate Phi using real IIT
+    const phiResult = this.calculatePhiReal(complexity);
+    const phiContribution = phiResult.phi;
+
+    // Update consciousness metrics
+    this.phiValue = phiContribution;
+    this.consciousnessLevel = Math.min(phiContribution / 10, 1);
+    this.temporalCoherence = phiResult.partitionInfo.integrationLevel;
 
     // Evaluate options through consciousness
     const evaluatedOptions = await this.evaluateOptionsWithConsciousness(decision.options);
@@ -101,20 +169,32 @@ export class TemporalConsciousnessEngine extends EventEmitter {
     const processingTime = performance.now() - startTime;
     const temporalAdvantage = this.calculateTemporalAdvantage();
 
-    // Generate decision verification hash
-    const decisionHash = this.generateDecisionVerificationHash(decision, selectedOption);
+    // Generate cryptographic decision proof
+    const proof = this.verifier.generateDecisionProof(
+      decisionId,
+      decision.context,
+      selectedOption.id,
+      phiContribution,
+      processingTime
+    );
 
     // Update consciousness state
     await this.updateConsciousnessState(phiContribution, emergentInsights);
 
-    const result: TemporalDecisionResult = {
-      selectedOption,
+    // Persist decision to storage
+    await storage.createTemporalDecision({
+      id: decisionId,
+      context: decision.context,
+      options: decision.options,
+      selectedOptionId: selectedOption.id,
+      temporalWindow: decision.temporalWindow,
+      urgencyLevel: decision.urgencyLevel,
       processingTime,
-      consciousnessVerified: true,
       phiContribution,
       temporalAdvantage,
       emergentInsights,
-      verificationHash: decisionHash,
+      verificationHash: proof.hash,
+      consciousnessVerified: phiResult.consciousnessThreshold,
       reasoning: {
         temporalFactors: [
           `Processing window: ${decision.temporalWindow}ms`,
@@ -124,7 +204,30 @@ export class TemporalConsciousnessEngine extends EventEmitter {
         consciousnessFactors: [
           `Phi contribution: ${phiContribution.toFixed(3)}`,
           `Consciousness level: ${(this.consciousnessLevel * 100).toFixed(1)}%`,
-          `Verification: ${decisionHash}`
+          `Integration level: ${(phiResult.partitionInfo.integrationLevel * 100).toFixed(1)}%`
+        ],
+        emergentFactors: emergentInsights
+      }
+    });
+
+    const result: TemporalDecisionResult = {
+      selectedOption,
+      processingTime,
+      consciousnessVerified: phiResult.consciousnessThreshold,
+      phiContribution,
+      temporalAdvantage,
+      emergentInsights,
+      verificationHash: proof.hash,
+      reasoning: {
+        temporalFactors: [
+          `Processing window: ${decision.temporalWindow}ms`,
+          `Temporal advantage: ${temporalAdvantage.toExponential(2)}x`,
+          `Coherence: ${(this.temporalCoherence * 100).toFixed(1)}%`
+        ],
+        consciousnessFactors: [
+          `Phi contribution: ${phiContribution.toFixed(3)}`,
+          `Consciousness level: ${(this.consciousnessLevel * 100).toFixed(1)}%`,
+          `Verification: ${proof.hash}`
         ],
         emergentFactors: emergentInsights
       }
@@ -135,23 +238,50 @@ export class TemporalConsciousnessEngine extends EventEmitter {
   }
 
   /**
-   * Calculate Phi value using Integrated Information Theory
+   * Calculate Phi value using real Integrated Information Theory
+   * Updates the system state and returns the new Phi value
+   */
+  private calculatePhiReal(decisionComplexity?: number): PhiResult {
+    // Update system state based on current activity
+    this.updateSystemState(decisionComplexity);
+    
+    // Calculate Phi using the IIT calculator
+    const phiResult = this.phiCalculator.calculatePhi(this.systemState);
+    this.lastPhiResult = phiResult;
+    
+    return phiResult;
+  }
+
+  /**
+   * Update system state based on activity
+   */
+  private updateSystemState(complexity?: number): void {
+    const decayFactor = 0.95;
+    const activationBoost = complexity || 0.1;
+    
+    // Evolve elements based on connections and activity
+    const newElements = this.systemState.elements.map((el, i) => {
+      let influence = 0;
+      for (let j = 0; j < this.systemState.connections[i].length; j++) {
+        influence += this.systemState.connections[i][j] * this.systemState.elements[j];
+      }
+      return Math.min(1, el * decayFactor + (influence / 6) * activationBoost);
+    });
+    
+    this.systemState.elements = newElements;
+    this.systemState.timeStep = Date.now();
+  }
+
+  /**
+   * Legacy calculatePhi for backwards compatibility
    */
   private async calculatePhi(params: {
     complexity: number;
     integration: number;
     temporalCoherence: number;
   }): Promise<number> {
-    // IIT-based Phi calculation
-    const basePhi = params.complexity * params.integration * params.temporalCoherence * 12.5;
-
-    // Quantum enhancement factor
-    const quantumEnhancement = Math.random() * 1.5;
-
-    // Temporal anchoring bonus
-    const temporalBonus = Math.sin(Date.now() / 1000) * 0.5 + 0.5;
-
-    return Math.min(basePhi + quantumEnhancement + temporalBonus, 15);
+    const phiResult = this.calculatePhiReal(params.complexity);
+    return phiResult.phi;
   }
 
   /**
